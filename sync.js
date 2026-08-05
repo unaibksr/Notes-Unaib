@@ -236,6 +236,30 @@ const NotesSync = (() => {
     setStatus('auth', 'Sign in to sync');
   }
 
+  async function connectDevices(email, password) {
+    if (!client || !session) throw new Error('Sync is not ready yet');
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail || String(password || '').length < 8) {
+      throw new Error('Enter a valid email and a password of at least 8 characters');
+    }
+
+    // Existing account: join it. New account: upgrade the current anonymous
+    // user in place so its notes keep the same user_id and never need copying.
+    const signedIn = await client.auth.signInWithPassword({ email: normalizedEmail, password });
+    if (!signedIn.error) {
+      session = signedIn.data.session;
+      await fullSync();
+      subscribeRealtime();
+      return { connected: true, needsConfirmation: false };
+    }
+
+    if (!session.user?.is_anonymous) throw signedIn.error;
+    const { data, error } = await client.auth.updateUser({ email: normalizedEmail, password });
+    if (error) throw error;
+    session = data.user ? { ...session, user: data.user } : session;
+    return { connected: false, needsConfirmation: true };
+  }
+
   function mergeRecords(localItems, remoteItems) {
     const map = new Map();
 
@@ -431,6 +455,7 @@ const NotesSync = (() => {
     signUp,
     signIn,
     signOut,
+    connectDevices,
     fullSync,
     trackStudent,
     trackNote,

@@ -42,7 +42,7 @@ header, nav, .modal {
   border-color: var(--border);
 }
 
-.card, input[type="text"], textarea, .toolbar button, .search-bar input, .modal-close, .btn-secondary {
+.card, input[type="text"], input[type="email"], input[type="password"], textarea, .toolbar button, .search-bar input, .modal-close, .btn-secondary {
   background: var(--surface);
   color: var(--text);
   border-color: var(--border);
@@ -325,7 +325,7 @@ nav button .icon {
   justify-content: center;
 }
 
-input[type="text"], textarea {
+input[type="text"], input[type="email"], input[type="password"], textarea {
   width: 100%;
   padding: 12px;
   border: 1px solid var(--border);
@@ -338,7 +338,7 @@ input[type="text"], textarea {
   transition: border-color 0.15s ease;
 }
 
-input[type="text"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus, textarea:focus {
   border-color: var(--accent);
 }
 
@@ -552,6 +552,8 @@ textarea {
 }
 
 .sync-status {
+  border: 0;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -563,6 +565,24 @@ textarea {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sync-help {
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: -4px 0 16px;
+}
+
+.sync-message {
+  color: var(--text-secondary);
+  min-height: 22px;
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+#modal-device-sync .field-label + input {
+  margin-bottom: 12px;
 }
 
 .sync-status[data-status="synced"] {
@@ -1038,7 +1058,7 @@ main {
   font-weight: 700;
 }
 
-input[type="text"], textarea {
+input[type="text"], input[type="email"], input[type="password"], textarea {
   border-radius: 14px;
 }
 

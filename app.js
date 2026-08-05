@@ -565,6 +565,35 @@ async function handleSignOut() {
   await NotesSync.signOut();
 }
 
+function openDeviceSync() {
+  const message = document.getElementById('device-sync-message');
+  if (message) message.textContent = '';
+  showModal('modal-device-sync');
+}
+
+async function connectDevices() {
+  const email = document.getElementById('sync-email-input')?.value || '';
+  const password = document.getElementById('sync-password-input')?.value || '';
+  const message = document.getElementById('device-sync-message');
+  const button = document.getElementById('device-sync-submit');
+  if (button) button.disabled = true;
+  if (message) message.textContent = 'Connecting…';
+  try {
+    const result = await NotesSync.connectDevices(email, password);
+    if (result.needsConfirmation) {
+      if (message) message.textContent = 'Check your email to confirm once. Then use these details on every device.';
+    } else {
+      if (message) message.textContent = 'Connected. This device now shares the same notes.';
+      updateSyncStatus('synced', 'Sync');
+      setTimeout(() => hideModal('modal-device-sync'), 1200);
+    }
+  } catch (error) {
+    if (message) message.textContent = error?.message || 'Could not connect this device.';
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   loadData();
   loadTheme();
@@ -578,6 +607,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('modal-student')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) hideModal('modal-student');
+  });
+  document.getElementById('modal-device-sync')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) hideModal('modal-device-sync');
   });
 
   document.getElementById('student-name-input')?.addEventListener('keydown', (e) => {
