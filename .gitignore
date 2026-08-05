@@ -1,0 +1,8 @@
+.kilo/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+!config.example.js
+

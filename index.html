@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#f4f6fb">
+  <meta name="description" content="Offline-first notes app for students">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Notes">
+  <title>Student Notes</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <div class="header-identity">
+        <button id="header-back" class="header-back" style="display:none;">&#8249;</button>
+        <img class="app-mark" src="logo.png" alt="Student Notes logo">
+        <div class="header-copy">
+          <span class="header-kicker">Notebook</span>
+          <h1 id="header-title">Student Notes</h1>
+        </div>
+      </div>
+      <div class="actions">
+        <span id="sync-status" class="sync-status" data-status="offline" title="Sync status"></span>
+        <button id="install-btn" class="header-menu" style="display:none;" title="Install app">⤓</button>
+        <button class="header-menu" onclick="toggleTheme()" id="theme-toggle" title="Toggle theme">🌙</button>
+        <button class="header-menu" onclick="deleteCurrentNote()" id="delete-note-btn" style="display:none;">🗑</button>
+        <button class="header-menu" onclick="closeReader();openNote(currentNoteId)" id="edit-note-btn" style="display:none;color:var(--accent);">✏️</button>
+      </div>
+    </header>
+
+    <main>
+      <div id="view-students" class="view active">
+        <div id="students-list"></div>
+      </div>
+
+      <div id="view-notes" class="view">
+        <div class="search-bar">
+          <input type="text" id="search-input" placeholder="Find a note..." oninput="handleSearch(event)">
+        </div>
+        <div id="notes-list-header"></div>
+        <div id="notes-list"></div>
+      </div>
+
+      <div id="view-editor" class="view" style="padding:0;overflow:hidden;">
+        <div class="editor-container">
+          <input type="text" id="note-title" class="note-title-input" placeholder="Note title...">
+          <div id="editor-content" class="editor-content" contenteditable="true" data-placeholder="Start typing your note..."></div>
+          <div class="toolbar">
+            <button onclick="execFormat('bold')" title="Bold"><b>B</b></button>
+            <button onclick="execFormat('italic')" title="Italic"><i>I</i></button>
+            <button onclick="execFormat('underline')" title="Underline"><u>U</u></button>
+            <button onclick="execFormat('formatBlock','H1')" title="Heading 1">H1</button>
+            <button onclick="execFormat('formatBlock','H2')" title="Heading 2">H2</button>
+            <button onclick="execFormat('formatBlock','H3')" title="Heading 3">H3</button>
+            <button onclick="execFormat('formatBlock','P')" title="Paragraph">P</button>
+            <button onclick="execFormat('insertUnorderedList')" title="Bullet list">• List</button>
+            <button onclick="execFormat('insertOrderedList')" title="Numbered list">1. List</button>
+            <button onclick="changeFontSize(1)" title="Increase size">A+</button>
+            <button onclick="changeFontSize(-1)" title="Decrease size">A-</button>
+            <button onclick="execFormat('removeFormat')" title="Clear formatting">✕</button>
+            <button onclick="closeEditor()" title="Submit note" style="background:var(--accent);color:white;border-color:var(--accent);">Submit</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="view-reader" class="view" style="padding:0;overflow-y:auto;background:var(--bg);">
+        <div class="reader-content">
+          <h1 id="reader-title"></h1>
+          <div id="reader-content"></div>
+        </div>
+      </div>
+    </main>
+
+    <button class="fab" id="fab" onclick="openAddStudent()" title="Add student">+</button>
+
+    <div id="modal-student" class="modal-overlay">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="add-student-title">
+        <div class="modal-header">
+          <div>
+            <span class="modal-kicker">New collection</span>
+            <h2 id="add-student-title">Add Student</h2>
+          </div>
+          <button class="modal-close" onclick="hideModal('modal-student')">&times;</button>
+        </div>
+        <label class="field-label" for="student-name-input">Student name</label>
+        <input type="text" id="student-name-input" placeholder="e.g. Alex Morgan" maxlength="80" autocomplete="off">
+        <button class="btn" onclick="addStudent()">Add Student</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="sync.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

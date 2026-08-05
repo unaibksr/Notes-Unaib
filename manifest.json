@@ -1,0 +1,18 @@
+{
+  "name": "Student Notes",
+  "short_name": "Notes",
+  "description": "Offline-first notes app for students",
+  "start_url": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#f4f6fb",
+  "background_color": "#f4f6fb",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
