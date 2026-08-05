@@ -5,4 +5,4 @@ Thumbs.db
 .env
 .env.*
 !config.example.js
-
+.vercel/
