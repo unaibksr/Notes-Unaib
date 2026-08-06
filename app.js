@@ -556,6 +556,9 @@ function updateSyncStatus(status, message) {
   el.dataset.status = status;
   el.textContent = status === 'synced' ? 'Sync' : message;
   el.title = message;
+  if (status === 'synced' && NotesSync?.isPermanentUser()) {
+    hideModal('modal-device-sync');
+  }
 }
 
 function openAuthModal() {
@@ -615,20 +618,14 @@ function openDeviceSync() {
 
 async function connectDevices() {
   const email = document.getElementById('sync-email-input')?.value || '';
-  const password = document.getElementById('sync-password-input')?.value || '';
   const message = document.getElementById('device-sync-message');
   const button = document.getElementById('device-sync-submit');
   if (button) button.disabled = true;
-  if (message) message.textContent = 'Connecting…';
+  if (message) message.textContent = 'Sending your secure link…';
   try {
-    const result = await NotesSync.connectDevices(email, password);
-    if (result.needsConfirmation) {
-      if (message) message.textContent = 'Check your email to confirm once. Then use these details on every device.';
-    } else {
-      if (message) message.textContent = 'Connected. This device now shares the same notes.';
-      updateSyncStatus('synced', 'Sync');
-      setTimeout(() => hideModal('modal-device-sync'), 1200);
-    }
+    await NotesSync.sendMagicLink(email);
+    if (message) message.textContent = 'Link sent. Open it on this device to finish. You only need to do this once per device.';
+    if (button) button.textContent = 'Send link again';
   } catch (error) {
     if (message) message.textContent = error?.message || 'Could not connect this device.';
   } finally {
@@ -651,10 +648,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('modal-student')?.addEventListener('click', (e) => {
     if (e.target === e.currentTarget) hideModal('modal-student');
   });
-  document.getElementById('modal-device-sync')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) hideModal('modal-device-sync');
-  });
-
   document.getElementById('student-name-input')?.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') addStudent();
   });
@@ -703,6 +696,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (NotesSync.isConfigured()) {
       try {
         await NotesSync.init();
+        if (!NotesSync.isPermanentUser()) openDeviceSync();
       } catch (err) {
         console.error('Supabase connection failed', err);
         updateSyncStatus('error', 'Sync unavailable');

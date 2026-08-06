@@ -166,26 +166,23 @@ const NotesSync = (() => {
     const { data } = await client.auth.getSession();
     session = data.session;
 
-    if (!session) {
-      setStatus('syncing', 'Connecting...');
-      const { data: anonymousData, error: anonymousError } = await client.auth.signInAnonymously();
-      if (anonymousError) {
-        setStatus('error', 'Sync unavailable');
-        throw anonymousError;
-      }
-      session = anonymousData.session;
-    }
-
     client.auth.onAuthStateChange((_event, newSession) => {
       session = newSession;
-      if (newSession) {
-        fullSync().catch(console.error);
-        subscribeRealtime();
+      if (isPermanentUser()) {
+        setTimeout(() => {
+          fullSync().catch(console.error);
+          subscribeRealtime();
+        }, 0);
       } else {
         unsubscribeRealtime();
-        setStatus('offline', 'Signed out');
+        setStatus('auth', 'Connect to sync');
       }
     });
+
+    if (!isPermanentUser()) {
+      setStatus('auth', 'Connect to sync');
+      return true;
+    }
 
     await fullSync();
     subscribeRealtime();
@@ -202,6 +199,26 @@ const NotesSync = (() => {
 
   function isSignedIn() {
     return !!session;
+  }
+
+  function isPermanentUser() {
+    return !!(session?.user && !session.user.is_anonymous);
+  }
+
+  async function sendMagicLink(email) {
+    if (!client) throw new Error('Supabase not configured');
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    if (!normalizedEmail) throw new Error('Enter your email address');
+
+    const { data, error } = await client.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: window.location.origin + '/'
+      }
+    });
+    if (error) throw error;
+    return data;
   }
 
   async function signUp(email, password) {
@@ -452,6 +469,8 @@ const NotesSync = (() => {
     getClient,
     getSession,
     isSignedIn,
+    isPermanentUser,
+    sendMagicLink,
     signUp,
     signIn,
     signOut,

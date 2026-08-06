@@ -101,15 +101,12 @@
             <span class="modal-kicker">Private cloud sync</span>
             <h2 id="device-sync-title">Connect your devices</h2>
           </div>
-          <button class="modal-close" onclick="hideModal('modal-device-sync')">&times;</button>
         </div>
-        <p class="sync-help">Use the same email and password on your PC, mobile, and any other browser.</p>
+        <p class="sync-help">Enter the same email once on your PC and mobile. We will email a secure sign-in link; after that, sync happens automatically whenever you open the app.</p>
         <label class="field-label" for="sync-email-input">Email</label>
         <input type="email" id="sync-email-input" placeholder="you@example.com" autocomplete="email">
-        <label class="field-label" for="sync-password-input">Password</label>
-        <input type="password" id="sync-password-input" placeholder="At least 8 characters" minlength="8" autocomplete="current-password">
         <p id="device-sync-message" class="sync-message" aria-live="polite"></p>
-        <button class="btn" id="device-sync-submit" onclick="connectDevices()">Connect devices</button>
+        <button class="btn" id="device-sync-submit" onclick="connectDevices()">Email me a sign-in link</button>
       </div>
     </div>
 
