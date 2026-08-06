@@ -11,6 +11,7 @@ const NotesSync = (() => {
   let client = null;
   let realtimeChannel = null;
   let syncRunning = false;
+  let fullSyncPromise = null;
   let onStatusChange = null;
   let onDataChange = null;
 
@@ -203,7 +204,10 @@ const NotesSync = (() => {
   }
 
   async function pushQueue() {
-    if (!client || syncRunning) return;
+    if (!client) return;
+    while (syncRunning) {
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
     const queue = loadQueue();
     if (queue.length === 0) return;
 
@@ -250,7 +254,7 @@ const NotesSync = (() => {
     }
   }
 
-  async function fullSync() {
+  async function performFullSync() {
     if (!client) return null;
 
     setStatus('syncing', 'Syncing…');
@@ -276,6 +280,15 @@ const NotesSync = (() => {
       setStatus('error', 'Sync failed');
       throw err;
     }
+  }
+
+  function fullSync() {
+    if (!fullSyncPromise) {
+      fullSyncPromise = performFullSync().finally(() => {
+        fullSyncPromise = null;
+      });
+    }
+    return fullSyncPromise;
   }
 
   function trackStudent(student, deleted = false) {

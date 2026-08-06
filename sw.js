@@ -1,4 +1,4 @@
-const CACHE_NAME = 'student-notes-v19';
+const CACHE_NAME = 'student-notes-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -19,11 +19,17 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    Promise.all([
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      ),
+      self.clients.claim().then(() =>
+        self.clients.matchAll({ type: 'window' }).then((clients) =>
+          Promise.all(clients.map((client) => client.navigate(client.url).catch(() => null)))
+        )
+      )
+    ])
   );
-  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -32,17 +38,16 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetched = fetch(event.request)
-        .then((response) => {
-          if (response?.status === 200) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-      return cached || fetched;
-    })
+    fetch(event.request)
+      .then((response) => {
+        if (response?.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      })
+      .catch(() =>
+        caches.match(event.request).then((cached) => cached || caches.match('./index.html'))
+      )
   );
 });

@@ -610,7 +610,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   showView('students');
 
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(console.error);
+    navigator.serviceWorker
+      .register('./sw.js', { updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch(console.error);
   }
 
   let deferredPrompt;
@@ -642,5 +645,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       updateSyncStatus('offline', 'Local only');
     }
+
+    const refreshFromCloud = () => {
+      if (document.visibilityState === 'visible' && activeView !== 'editor') {
+        NotesSync.fullSync().catch((error) => console.error('Background sync failed', error));
+      }
+    };
+    window.addEventListener('focus', refreshFromCloud);
+    document.addEventListener('visibilitychange', refreshFromCloud);
+    setInterval(refreshFromCloud, 10000);
   }
 });
