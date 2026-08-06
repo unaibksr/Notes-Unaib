@@ -200,6 +200,48 @@ function showView(name) {
   }
 }
 
+function navigateBack() {
+  if (document.querySelector('.modal-overlay.show')) return;
+  if (activeView === 'editor') closeEditor();
+  else if (activeView === 'reader') closeReader();
+  else if (activeView === 'notes') showView('students');
+}
+
+function setupSwipeBackGesture() {
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let blocked = false;
+
+  document.addEventListener('touchstart', (event) => {
+    if (event.touches.length !== 1 || activeView === 'students') return;
+    const target = event.target instanceof Element ? event.target : null;
+    blocked = !!target?.closest(
+      'input, textarea, [contenteditable="true"], .toolbar, .search-bar, button, a, .modal-overlay'
+    );
+    const touch = event.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    startTime = Date.now();
+  }, { passive: true });
+
+  document.addEventListener('touchend', (event) => {
+    if (blocked || !startTime || event.changedTouches.length !== 1) {
+      startTime = 0;
+      return;
+    }
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+    const elapsed = Date.now() - startTime;
+    startTime = 0;
+
+    if (deltaX <= -72 && Math.abs(deltaY) <= 60 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4 && elapsed <= 700) {
+      navigateBack();
+    }
+  }, { passive: true });
+}
+
 function showModal(modalId) {
   const overlay = document.getElementById(modalId);
   if (!overlay) return;
@@ -597,6 +639,7 @@ async function connectDevices() {
 document.addEventListener('DOMContentLoaded', async () => {
   loadData();
   loadTheme();
+  setupSwipeBackGesture();
 
   if (!currentStudentId && students.length > 0) {
     currentStudentId = students[0].id;
