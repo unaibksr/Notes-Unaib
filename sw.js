@@ -1,4 +1,4 @@
-const CACHE_NAME = 'student-notes-v11';
+const CACHE_NAME = 'student-notes-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,8 @@ const ASSETS = [
   './sync.js',
   './config.js',
   './logo.png',
+  './icon-192.png',
+  './icon-512.png',
   './manifest.json'
 ];
 
