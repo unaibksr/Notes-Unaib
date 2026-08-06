@@ -181,30 +181,6 @@ const NotesSync = (() => {
     return !!client;
   }
 
-  function mergeRecords(localItems, remoteItems) {
-    const map = new Map();
-
-    for (const item of localItems) {
-      map.set(item.id, { ...item });
-    }
-
-    for (const remote of remoteItems) {
-      const existing = map.get(remote.id);
-      if (!existing) {
-        if (!remote.deletedAt) map.set(remote.id, remote);
-        continue;
-      }
-      const localTs = existing.updatedAt || existing.createdAt || 0;
-      const remoteTs = remote.updatedAt || remote.createdAt || 0;
-      if (remoteTs >= localTs) {
-        if (remote.deletedAt) map.delete(remote.id);
-        else map.set(remote.id, remote);
-      }
-    }
-
-    return Array.from(map.values());
-  }
-
   async function pullRemote() {
     if (!client) return { students: [], notes: [] };
 
@@ -283,28 +259,15 @@ const NotesSync = (() => {
       await pushQueue();
 
       const remote = await pullRemote();
-      const localRaw = localStorage.getItem('student_notes_data');
-      let localStudents = [];
-      let localNotes = [];
-
-      if (localRaw) {
-        const parsed = JSON.parse(localRaw);
-        localStudents = parsed.students || [];
-        localNotes = parsed.notes || [];
-      }
-
-      const mergedStudents = mergeRecords(localStudents, remote.students);
-      const mergedNotes = mergeRecords(localNotes, remote.notes);
-
       localStorage.setItem(
         'student_notes_data',
-        JSON.stringify({ students: mergedStudents, notes: mergedNotes })
+        JSON.stringify({ students: remote.students, notes: remote.notes })
       );
       localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
       setStatus('synced', 'Synced');
 
-      if (onDataChange) onDataChange({ students: mergedStudents, notes: mergedNotes });
-      return { students: mergedStudents, notes: mergedNotes };
+      if (onDataChange) onDataChange(remote);
+      return remote;
     } catch (err) {
       console.error('Full sync failed', err);
       setStatus('error', 'Sync failed');

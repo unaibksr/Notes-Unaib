@@ -556,6 +556,20 @@ function updateSyncStatus(status, message) {
   el.dataset.status = status;
   el.textContent = status === 'synced' ? 'Sync' : message;
   el.title = message;
+  el.disabled = status === 'syncing';
+}
+
+async function handleManualSync() {
+  if (activeView === 'editor' && currentNoteId) saveCurrentNote(true);
+  updateSyncStatus('syncing', 'Syncing…');
+  try {
+    await NotesSync.fullSync();
+    loadData();
+    refreshCurrentView();
+  } catch (error) {
+    console.error('Manual sync failed', error);
+    updateSyncStatus('error', 'Try again');
+  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

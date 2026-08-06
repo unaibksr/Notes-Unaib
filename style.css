@@ -567,6 +567,15 @@ textarea {
   white-space: nowrap;
 }
 
+.sync-status:not(:disabled):hover {
+  transform: translateY(-1px);
+  filter: brightness(0.96);
+}
+
+.sync-status:disabled {
+  cursor: wait;
+}
+
 .sync-help {
   color: var(--text-secondary);
   line-height: 1.5;
