@@ -581,10 +581,6 @@ textarea {
   line-height: 1.4;
 }
 
-#modal-device-sync .field-label + input {
-  margin-bottom: 12px;
-}
-
 .sync-status[data-status="synced"] {
   background: transparent;
   color: #166534;
@@ -610,7 +606,6 @@ textarea {
   color: #991b1b;
 }
 
-.sync-status[data-status="auth"],
 .sync-status[data-status="offline"] {
   background: var(--bg);
   color: var(--text-secondary);
@@ -641,17 +636,6 @@ textarea {
   color: #ef4444;
   cursor: pointer;
   padding: 4px;
-}
-
-.auth-error {
-  color: #ef4444;
-  font-size: 13px;
-  margin: 8px 0;
-  min-height: 1.2em;
-}
-
-#auth-form input {
-  margin-bottom: 10px;
 }
 
 .empty-note {

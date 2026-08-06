@@ -26,7 +26,7 @@
         </div>
       </div>
       <div class="actions">
-        <button id="sync-status" class="sync-status" data-status="offline" title="Connect devices" onclick="openDeviceSync()"></button>
+        <span id="sync-status" class="sync-status" data-status="syncing" title="Cloud sync">Syncing…</span>
         <button id="install-btn" class="header-menu" style="display:none;" title="Install app">⤓</button>
         <button class="header-menu" onclick="toggleTheme()" id="theme-toggle" title="Toggle theme">🌙</button>
         <button class="header-menu" onclick="deleteCurrentNote()" id="delete-note-btn" style="display:none;">🗑</button>
@@ -91,22 +91,6 @@
         <label class="field-label" for="student-name-input">Student name</label>
         <input type="text" id="student-name-input" placeholder="e.g. Alex Morgan" maxlength="80" autocomplete="off">
         <button class="btn" onclick="addStudent()">Add Student</button>
-      </div>
-    </div>
-
-    <div id="modal-device-sync" class="modal-overlay">
-      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="device-sync-title">
-        <div class="modal-header">
-          <div>
-            <span class="modal-kicker">Private cloud sync</span>
-            <h2 id="device-sync-title">Connect your devices</h2>
-          </div>
-        </div>
-        <p class="sync-help">Enter the same email once on your PC and mobile. We will email a secure sign-in link; after that, sync happens automatically whenever you open the app.</p>
-        <label class="field-label" for="sync-email-input">Email</label>
-        <input type="email" id="sync-email-input" placeholder="you@example.com" autocomplete="email">
-        <p id="device-sync-message" class="sync-message" aria-live="polite"></p>
-        <button class="btn" id="device-sync-submit" onclick="connectDevices()">Email me a sign-in link</button>
       </div>
     </div>
 

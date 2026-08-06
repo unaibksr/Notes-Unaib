@@ -5,9 +5,10 @@
 const NotesSync = (() => {
   const QUEUE_KEY = 'student_notes_sync_queue';
   const LAST_SYNC_KEY = 'student_notes_last_sync';
+  const SHARED_SYNC_KEY = 'student_notes_shared_sync_v1';
+  const SHARED_USER_ID = 'ee6bf612-7aae-450c-a3d7-53aa97a513fc';
 
   let client = null;
-  let session = null;
   let realtimeChannel = null;
   let syncRunning = false;
   let onStatusChange = null;
@@ -98,11 +99,11 @@ const NotesSync = (() => {
     if (existing >= 0) queue[existing] = item;
     else queue.push(item);
     saveQueue(queue);
-    if (session) schedulePush();
+    if (client) schedulePush();
   }
 
   function queueInitialLocalData() {
-    if (localStorage.getItem(LAST_SYNC_KEY)) return;
+    if (localStorage.getItem(SHARED_SYNC_KEY)) return;
 
     try {
       const parsed = JSON.parse(localStorage.getItem('student_notes_data') || '{}');
@@ -157,32 +158,11 @@ const NotesSync = (() => {
     const cfg = window.SUPABASE_CONFIG;
     client = window.supabase.createClient(cfg.url, cfg.anonKey, {
       auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
       }
     });
-
-    const { data } = await client.auth.getSession();
-    session = data.session;
-
-    client.auth.onAuthStateChange((_event, newSession) => {
-      session = newSession;
-      if (isPermanentUser()) {
-        setTimeout(() => {
-          fullSync().catch(console.error);
-          subscribeRealtime();
-        }, 0);
-      } else {
-        unsubscribeRealtime();
-        setStatus('auth', 'Connect to sync');
-      }
-    });
-
-    if (!isPermanentUser()) {
-      setStatus('auth', 'Connect to sync');
-      return true;
-    }
 
     await fullSync();
     subscribeRealtime();
@@ -193,88 +173,12 @@ const NotesSync = (() => {
     return client;
   }
 
-  function getSession() {
-    return session;
-  }
-
   function isSignedIn() {
-    return !!session;
+    return !!client;
   }
 
   function isPermanentUser() {
-    return !!(session?.user && !session.user.is_anonymous);
-  }
-
-  async function sendMagicLink(email) {
-    if (!client) throw new Error('Supabase not configured');
-    const normalizedEmail = String(email || '').trim().toLowerCase();
-    if (!normalizedEmail) throw new Error('Enter your email address');
-
-    const { data, error } = await client.auth.signInWithOtp({
-      email: normalizedEmail,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: window.location.origin + '/'
-      }
-    });
-    if (error) throw error;
-    return data;
-  }
-
-  async function signUp(email, password) {
-    if (!client) throw new Error('Supabase not configured');
-    const { data, error } = await client.auth.signUp({ email, password });
-    if (error) throw error;
-    session = data.session;
-    if (session) {
-      setStatus('syncing', 'Syncing…');
-      await fullSync();
-      subscribeRealtime();
-    }
-    return data;
-  }
-
-  async function signIn(email, password) {
-    if (!client) throw new Error('Supabase not configured');
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    session = data.session;
-    setStatus('syncing', 'Syncing…');
-    await fullSync();
-    subscribeRealtime();
-    return data;
-  }
-
-  async function signOut() {
-    if (!client) return;
-    unsubscribeRealtime();
-    await client.auth.signOut();
-    session = null;
-    setStatus('auth', 'Sign in to sync');
-  }
-
-  async function connectDevices(email, password) {
-    if (!client || !session) throw new Error('Sync is not ready yet');
-    const normalizedEmail = String(email || '').trim().toLowerCase();
-    if (!normalizedEmail || String(password || '').length < 8) {
-      throw new Error('Enter a valid email and a password of at least 8 characters');
-    }
-
-    // Existing account: join it. New account: upgrade the current anonymous
-    // user in place so its notes keep the same user_id and never need copying.
-    const signedIn = await client.auth.signInWithPassword({ email: normalizedEmail, password });
-    if (!signedIn.error) {
-      session = signedIn.data.session;
-      await fullSync();
-      subscribeRealtime();
-      return { connected: true, needsConfirmation: false };
-    }
-
-    if (!session.user?.is_anonymous) throw signedIn.error;
-    const { data, error } = await client.auth.updateUser({ email: normalizedEmail, password });
-    if (error) throw error;
-    session = data.user ? { ...session, user: data.user } : session;
-    return { connected: false, needsConfirmation: true };
+    return !!client;
   }
 
   function mergeRecords(localItems, remoteItems) {
@@ -302,11 +206,11 @@ const NotesSync = (() => {
   }
 
   async function pullRemote() {
-    if (!client || !session) return { students: [], notes: [] };
+    if (!client) return { students: [], notes: [] };
 
     const [studentsRes, notesRes] = await Promise.all([
-      client.from('students').select('*').eq('user_id', session.user.id),
-      client.from('notes').select('*').eq('user_id', session.user.id)
+      client.from('students').select('*').eq('user_id', SHARED_USER_ID),
+      client.from('notes').select('*').eq('user_id', SHARED_USER_ID)
     ]);
 
     if (studentsRes.error) throw studentsRes.error;
@@ -323,7 +227,7 @@ const NotesSync = (() => {
   }
 
   async function pushQueue() {
-    if (!client || !session || syncRunning) return;
+    if (!client || syncRunning) return;
     const queue = loadQueue();
     if (queue.length === 0) return;
 
@@ -331,7 +235,7 @@ const NotesSync = (() => {
     setStatus('syncing', 'Syncing…');
 
     const remaining = [];
-    const userId = session.user.id;
+    const userId = SHARED_USER_ID;
 
     for (const item of queue) {
       try {
@@ -363,6 +267,7 @@ const NotesSync = (() => {
 
     if (remaining.length === 0) {
       localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+      localStorage.setItem(SHARED_SYNC_KEY, String(Date.now()));
       setStatus('synced', 'Synced');
     } else {
       setStatus('error', 'Sync pending');
@@ -370,7 +275,7 @@ const NotesSync = (() => {
   }
 
   async function fullSync() {
-    if (!client || !session) return null;
+    if (!client) return null;
 
     setStatus('syncing', 'Syncing…');
     try {
@@ -426,19 +331,19 @@ const NotesSync = (() => {
   }
 
   function subscribeRealtime() {
-    if (!client || !session) return;
+    if (!client) return;
     unsubscribeRealtime();
 
     realtimeChannel = client
       .channel('notes-sync')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'students', filter: `user_id=eq.${session.user.id}` },
+        { event: '*', schema: 'public', table: 'students', filter: `user_id=eq.${SHARED_USER_ID}` },
         () => fullSync().catch(console.error)
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'notes', filter: `user_id=eq.${session.user.id}` },
+        { event: '*', schema: 'public', table: 'notes', filter: `user_id=eq.${SHARED_USER_ID}` },
         () => fullSync().catch(console.error)
       )
       .subscribe();
@@ -460,21 +365,15 @@ const NotesSync = (() => {
   }
 
   window.addEventListener('online', () => {
-    if (session) pushQueue().catch(console.error);
+    if (client) fullSync().catch(console.error);
   });
 
   return {
     isConfigured,
     init,
     getClient,
-    getSession,
     isSignedIn,
     isPermanentUser,
-    sendMagicLink,
-    signUp,
-    signIn,
-    signOut,
-    connectDevices,
     fullSync,
     trackStudent,
     trackNote,

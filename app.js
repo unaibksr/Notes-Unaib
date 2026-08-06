@@ -556,81 +556,6 @@ function updateSyncStatus(status, message) {
   el.dataset.status = status;
   el.textContent = status === 'synced' ? 'Sync' : message;
   el.title = message;
-  if (status === 'synced' && NotesSync?.isPermanentUser()) {
-    hideModal('modal-device-sync');
-  }
-}
-
-function openAuthModal() {
-  document.getElementById('auth-error').textContent = '';
-  showModal('modal-auth');
-}
-
-async function handleSignIn(e) {
-  e.preventDefault();
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.textContent = '';
-  try {
-    await NotesSync.signIn(email, password);
-    hideModal('modal-auth');
-    loadData();
-    refreshCurrentView();
-  } catch (err) {
-    errEl.textContent = err.message || 'Sign in failed';
-  }
-}
-
-async function handleSignUp(e) {
-  e.preventDefault();
-  const email = document.getElementById('auth-email').value.trim();
-  const password = document.getElementById('auth-password').value;
-  const errEl = document.getElementById('auth-error');
-  errEl.textContent = '';
-  if (password.length < 6) {
-    errEl.textContent = 'Password must be at least 6 characters';
-    return;
-  }
-  try {
-    const data = await NotesSync.signUp(email, password);
-    if (!data.session) {
-      errEl.textContent = 'Check your email to confirm your account, then sign in.';
-      return;
-    }
-    hideModal('modal-auth');
-    loadData();
-    refreshCurrentView();
-  } catch (err) {
-    errEl.textContent = err.message || 'Sign up failed';
-  }
-}
-
-async function handleSignOut() {
-  await NotesSync.signOut();
-}
-
-function openDeviceSync() {
-  const message = document.getElementById('device-sync-message');
-  if (message) message.textContent = '';
-  showModal('modal-device-sync');
-}
-
-async function connectDevices() {
-  const email = document.getElementById('sync-email-input')?.value || '';
-  const message = document.getElementById('device-sync-message');
-  const button = document.getElementById('device-sync-submit');
-  if (button) button.disabled = true;
-  if (message) message.textContent = 'Sending your secure link…';
-  try {
-    await NotesSync.sendMagicLink(email);
-    if (message) message.textContent = 'Link sent. Open it on this device to finish. You only need to do this once per device.';
-    if (button) button.textContent = 'Send link again';
-  } catch (error) {
-    if (message) message.textContent = error?.message || 'Could not connect this device.';
-  } finally {
-    if (button) button.disabled = false;
-  }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -696,7 +621,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (NotesSync.isConfigured()) {
       try {
         await NotesSync.init();
-        if (!NotesSync.isPermanentUser()) openDeviceSync();
       } catch (err) {
         console.error('Supabase connection failed', err);
         updateSyncStatus('error', 'Sync unavailable');

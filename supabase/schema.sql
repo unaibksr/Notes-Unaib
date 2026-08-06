@@ -63,63 +63,33 @@ create trigger notes_set_updated_at
 alter table public.students enable row level security;
 alter table public.notes enable row level security;
 
--- Students policies
+-- This is intentionally one public notebook with no sign-in. RLS remains on
+-- and limits browser access to the single shared owner ID used by the app.
 drop policy if exists "Users read own students" on public.students;
-create policy "Users read own students"
-  on public.students for select
-  to authenticated
-  using ((select auth.uid()) = user_id);
-
 drop policy if exists "Users insert own students" on public.students;
-create policy "Users insert own students"
-  on public.students for insert
-  to authenticated
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists "Users update own students" on public.students;
-create policy "Users update own students"
-  on public.students for update
-  to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists "Users delete own students" on public.students;
-create policy "Users delete own students"
-  on public.students for delete
-  to authenticated
-  using ((select auth.uid()) = user_id);
-
--- Notes policies
 drop policy if exists "Users read own notes" on public.notes;
-create policy "Users read own notes"
-  on public.notes for select
-  to authenticated
-  using ((select auth.uid()) = user_id);
-
 drop policy if exists "Users insert own notes" on public.notes;
-create policy "Users insert own notes"
-  on public.notes for insert
-  to authenticated
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists "Users update own notes" on public.notes;
-create policy "Users update own notes"
-  on public.notes for update
-  to authenticated
-  using ((select auth.uid()) = user_id)
-  with check ((select auth.uid()) = user_id);
-
 drop policy if exists "Users delete own notes" on public.notes;
-create policy "Users delete own notes"
-  on public.notes for delete
-  to authenticated
-  using ((select auth.uid()) = user_id);
 
--- Data API privileges. RLS policies above still enforce per-user ownership.
-revoke all on table public.students from anon;
-revoke all on table public.notes from anon;
-grant select, insert, update, delete on table public.students to authenticated;
-grant select, insert, update, delete on table public.notes to authenticated;
+drop policy if exists "Shared notebook students" on public.students;
+create policy "Shared notebook students"
+  on public.students for all
+  to anon, authenticated
+  using (user_id = 'ee6bf612-7aae-450c-a3d7-53aa97a513fc'::uuid)
+  with check (user_id = 'ee6bf612-7aae-450c-a3d7-53aa97a513fc'::uuid);
+
+drop policy if exists "Shared notebook notes" on public.notes;
+create policy "Shared notebook notes"
+  on public.notes for all
+  to anon, authenticated
+  using (user_id = 'ee6bf612-7aae-450c-a3d7-53aa97a513fc'::uuid)
+  with check (user_id = 'ee6bf612-7aae-450c-a3d7-53aa97a513fc'::uuid);
+
+grant select, insert, update, delete on table public.students to anon, authenticated;
+grant select, insert, update, delete on table public.notes to anon, authenticated;
 
 -- ─── Realtime (optional — enable in Dashboard → Database → Replication) ───────
 do $$
