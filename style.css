@@ -1,16 +1,16 @@
 :root {
-  --bg: #f4f6fb;
-  --surface: #ffffff;
-  --surface-soft: #f8f9fd;
-  --text: #182034;
-  --text-secondary: #697187;
-  --accent: #5b5bd6;
-  --accent-dark: #4747b8;
-  --accent-soft: #eeeeff;
-  --note-title: #b26f00;
-  --border: #e4e7f0;
-  --shadow: 0 8px 24px rgba(42, 48, 74, 0.07);
-  --shadow-lg: 0 18px 45px rgba(42, 48, 74, 0.16);
+  --bg: #f3ead5;
+  --surface: #fffaf0;
+  --surface-soft: #f8eedb;
+  --text: #28313a;
+  --text-secondary: #6f685a;
+  --accent: #163f63;
+  --accent-dark: #0e304e;
+  --accent-soft: #ebe3cf;
+  --note-title: #a86408;
+  --border: #dfcfad;
+  --shadow: 0 8px 24px rgba(91, 69, 35, 0.08);
+  --shadow-lg: 0 18px 45px rgba(91, 69, 35, 0.16);
   --radius: 18px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --overlay-bg: rgba(0,0,0,0.4);
@@ -728,6 +728,29 @@ body {
   background:
     radial-gradient(circle at 8% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 28rem),
     var(--bg);
+}
+
+:root:not([data-theme="dark"]) body {
+  background:
+    radial-gradient(circle at 12% -8%, rgba(255, 249, 222, .92), transparent 34rem),
+    radial-gradient(circle at 92% 104%, rgba(218, 181, 91, .12), transparent 30rem),
+    repeating-linear-gradient(0deg, rgba(105, 82, 43, .018) 0, rgba(105, 82, 43, .018) 1px, transparent 1px, transparent 4px),
+    var(--bg);
+}
+
+:root:not([data-theme="dark"]) header {
+  background: rgba(255, 250, 240, .88);
+}
+
+:root:not([data-theme="dark"]) .card {
+  background:
+    linear-gradient(145deg, rgba(255, 253, 246, .98), rgba(248, 235, 207, .92));
+}
+
+:root:not([data-theme="dark"]) .modal,
+:root:not([data-theme="dark"]) .editor-content,
+:root:not([data-theme="dark"]) .note-title-input {
+  background-color: var(--surface) !important;
 }
 
 #app {

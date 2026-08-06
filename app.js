@@ -84,7 +84,7 @@ function applyTheme() {
   const toggle = document.getElementById('theme-toggle');
   if (toggle) toggle.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', currentTheme === 'dark' ? '#0f172a' : '#ffffff');
+  if (meta) meta.setAttribute('content', currentTheme === 'dark' ? '#0f172a' : '#f3ead5');
 }
 
 function toggleTheme() {
