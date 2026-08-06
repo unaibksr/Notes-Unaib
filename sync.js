@@ -204,12 +204,12 @@ const NotesSync = (() => {
   }
 
   async function pushQueue() {
-    if (!client) return;
+    if (!client) return false;
     while (syncRunning) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
     const queue = loadQueue();
-    if (queue.length === 0) return;
+    if (queue.length === 0) return true;
 
     syncRunning = true;
     setStatus('syncing', 'Syncing…');
@@ -252,6 +252,7 @@ const NotesSync = (() => {
     } else {
       setStatus('error', 'Sync pending');
     }
+    return remaining.length === 0;
   }
 
   async function performFullSync() {
@@ -260,7 +261,9 @@ const NotesSync = (() => {
     setStatus('syncing', 'Syncing…');
     try {
       queueInitialLocalData();
-      await pushQueue();
+      const pushed = await pushQueue();
+      // Never replace unsynced local work with an older cloud snapshot.
+      if (!pushed) return null;
 
       const remote = await pullRemote();
       localStorage.setItem(

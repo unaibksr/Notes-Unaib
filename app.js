@@ -429,7 +429,6 @@ function openAddNote() {
 
   notes.push(note);
   saveData(true);
-  NotesSync.trackNote(note);
   openNote(note.id);
 }
 
@@ -628,8 +627,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     editorSaveTimeout = setTimeout(() => saveCurrentNote(false), 400);
   });
 
+  ['note-title', 'editor-content'].forEach((id) => {
+    const field = document.getElementById(id);
+    field?.addEventListener('compositionend', () => saveCurrentNote(true));
+    field?.addEventListener('blur', () => saveCurrentNote(true));
+  });
+
   window.addEventListener('beforeunload', () => {
     if (currentNoteId) saveCurrentNote(true);
+  });
+  window.addEventListener('pagehide', () => {
+    if (currentNoteId) saveCurrentNote(true);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && currentNoteId) saveCurrentNote(true);
   });
 
   showView('students');
