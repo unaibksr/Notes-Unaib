@@ -304,12 +304,12 @@ const NotesSync = (() => {
       .channel('notes-sync')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'students', filter: `user_id=eq.${SHARED_USER_ID}` },
+        { event: '*', schema: 'public', table: 'students' },
         () => fullSync().catch(console.error)
       )
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'notes', filter: `user_id=eq.${SHARED_USER_ID}` },
+        { event: '*', schema: 'public', table: 'notes' },
         () => fullSync().catch(console.error)
       )
       .subscribe();
