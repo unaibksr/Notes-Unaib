@@ -1,3 +1,19 @@
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notonastaliqurdu/v23/LhWNMUPbN-oZdNFcBy1-DJYsEoTq5pudQ9L940pGPkB3Qt_-DK0.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('https://fonts.gstatic.com/s/notonastaliqurdu/v23/LhWNMUPbN-oZdNFcBy1-DJYsEoTq5pudQ9L940pGPkB3QgH5DK0.ttf') format('truetype');
+}
+
 :root {
   --bg: #f3ead5;
   --surface: #fffaf0;
@@ -14,6 +30,13 @@
   --radius: 18px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --overlay-bg: rgba(0,0,0,0.4);
+}
+
+.urdu-text {
+  font-family: 'Jameel Noori Nastaleeq', 'Noto Nastaliq Urdu', serif !important;
+  direction: rtl;
+  text-align: right;
+  line-height: 2.1;
 }
 
 [data-theme="dark"] {

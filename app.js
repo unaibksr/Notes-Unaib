@@ -545,6 +545,30 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+const URDU_TEXT_PATTERN = /[\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff]/;
+
+function updateUrduTypography(root = document) {
+  const selector = '.card h3, .card p, #note-title, #editor-content, #reader-title, #reader-content';
+  const elements = root.matches?.(selector) ? [root] : root.querySelectorAll?.(selector) || [];
+  elements.forEach((element) => {
+    const text = 'value' in element ? element.value : element.textContent;
+    const isUrdu = URDU_TEXT_PATTERN.test(text || '');
+    element.classList.toggle('urdu-text', isUrdu);
+    if (isUrdu) element.setAttribute('dir', 'rtl');
+    else element.removeAttribute('dir');
+  });
+}
+
+function setupUrduTypography() {
+  updateUrduTypography();
+  document.addEventListener('input', (event) => updateUrduTypography(event.target));
+  new MutationObserver(() => updateUrduTypography()).observe(document.body, {
+    childList: true,
+    characterData: true,
+    subtree: true
+  });
+}
+
 function handleSearch(e) {
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => renderNotes(e.target.value.trim()), 150);
@@ -575,6 +599,7 @@ async function handleManualSync() {
 document.addEventListener('DOMContentLoaded', async () => {
   loadData();
   loadTheme();
+  setupUrduTypography();
   setupSwipeBackGesture();
 
   if (!currentStudentId && students.length > 0) {
