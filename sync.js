@@ -264,6 +264,9 @@ const NotesSync = (() => {
         JSON.stringify({ students: remote.students, notes: remote.notes })
       );
       localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+      // Mark every successful first pull, including an empty local device, so
+      // downloaded records are never mistaken for unsynced local additions.
+      localStorage.setItem(SHARED_SYNC_KEY, String(Date.now()));
       setStatus('synced', 'Synced');
 
       if (onDataChange) onDataChange(remote);
